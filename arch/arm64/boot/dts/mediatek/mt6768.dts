@@ -3053,7 +3053,7 @@ defined(CONFIG_MTK_CAM_SECURITY_SUPPORT)
 	};
 
 #endif
-	venc@17020000 {
+	mtk-venc@17020000 {
 		compatible = "mediatek,venc";
 		reg = <0 0x17020000 0 0x10000>;
 		interrupts = <GIC_SPI 243 IRQ_TYPE_LEVEL_LOW>;
