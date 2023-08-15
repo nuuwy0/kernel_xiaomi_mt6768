@@ -47,7 +47,7 @@ CrossCompileFlag32="arm-linux-gnueabi-"
 function toolchain() {
 git clone https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9 --depth 1 los
 git clone https://github.com/NusantaraDevs/DragonTC/ --branch 10.0 --depth=1 clang
-export PATH="${MainClangPath}/bin:${MainGccPath}/bin:${${PATH}"
+export PATH="${MainClangPath}/bin:${MainGccPath}/bin:${PATH}"
 
   if [ ! -f '${MainClangPath}-${ClangName}/bin/clang' ]; then
     export KBUILD_COMPILER_STRING="$(${MainClangPath}-${ClangName}/bin/clang --version | head -n 1)"
@@ -200,7 +200,6 @@ function zipping() {
     zip -r9 $KERNEL_NAME-$VERSION-$DEVICE-$ZDATE.zip * -x .git README.md *placeholder
     cd ..
     mkdir -p builds
-    zipname="$(basename $(echo ${AnyKernelPath}/*.zip | sed "s/.zip//g"))"
     cp ${AnyKernelPath}/*.zip ./builds/
 }
 
@@ -216,6 +215,4 @@ toolchain
 sendinfo
 compile
 zipping
-END=$(date +"%s")
-DIFF=$(($END - $START))
 push
