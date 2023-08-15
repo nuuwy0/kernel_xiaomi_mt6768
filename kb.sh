@@ -50,7 +50,7 @@ git clone https://github.com/NusantaraDevs/DragonTC/ --branch 10.0 --depth=1 cla
 export PATH="${MainClangPath}/bin:${MainGccPath}/bin:${PATH}"
 
   if [ ! -f '${MainClangPath}-${ClangName}/bin/clang' ]; then
-    export KBUILD_COMPILER_STRING="$(${MainClangPath}-${ClangName}/bin/clang --version | head -n 1)"
+    export KBUILD_COMPILER_STRING="$(${MainClangPath}/bin/clang --version | head -n 1)"
   else
     export KBUILD_COMPILER_STRING="Unknown"
   fi
