@@ -158,9 +158,9 @@ make -j"$CORES" ARCH=$ARCH O=out \
     OBJCOPY=llvm-objcopy \
     OBJDUMP=llvm-objdump \
     STRIP=llvm-strip \
-    CLANG_TRIPLE=${CrossCompileFlagTriple} \
-    CROSS_COMPILE=${CrossCompileFlag64} \
-    CROSS_COMPILE_ARM32=${CrossCompileFlag32} 2>&1 | tee error.log
+    CLANG_TRIPLE=aarch64-linux-gnu- \
+    CROSS_COMPILE=aarch64-linux-gnu-\
+    CROSS_COMPILE_ARM32=arm-linux-gnueabi- 2>&1 | tee error.log
 
    if [[ -f "$IMAGE" ]]; then
       echo -e "\n\e[1;32m[✓] Kernel successfully compiled! \e[0m"
