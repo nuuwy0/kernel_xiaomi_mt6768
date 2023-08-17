@@ -147,7 +147,7 @@ tgm "
 <b>------------------------------------------</b>
 "
 
-make O=out ARCH=$ARCH $CONFIG
+make O=out $CONFIG
 MAKE+=(
 			CROSS_COMPILE=aarch64-linux-gnu-
 			CROSS_COMPILE_COMPAT=arm-linux-gnueabi-
