@@ -38,7 +38,7 @@ GCC32_DIR=$KERNEL_DIR/gcc32
 KERNEL_NAME="Atomic-Osuya!"
 VERSION="v1"
 export KERVER=$(make kernelversion)
-LINKER=ld
+LINKER=ld.lld
 MODEL="Redmi Note 9"
 DEVICE="merlin"
 CONFIG="merlin_defconfig"
@@ -50,6 +50,7 @@ ZDATE="$(date "+%d%m%Y")"
 
 export TZ="Asia/Jakarta"
 export ARCH="arm64"
+export SUBARCH=$ARCH
 export KBUILD_BUILD_USER="nuuwy0"
 export KBUILD_BUILD_HOST="0ywuun"
 
@@ -60,7 +61,7 @@ function clone() {
 git clone https://github.com/mvaisakh/gcc-arm64 --depth 1 gcc64
 git clone https://github.com/mvaisakh/gcc-arm --depth 1 gcc32
 git clone https://github.com/NusantaraDevs/DragonTC/ --branch 10.0 --depth 1 clang
-export PATH="${CLANG_DIR}/bin:${GCC64_DIR}/bin:${GCC32_DIR}/bin:${PATH}"
+export PATH="$CLANG_DIR/bin/:$GCC64_DIR/bin/:$GCC32_DIR/bin/:/usr/bin:$PATH"
 if [ ! -f '${CLANG_DIR}/bin/clang' ]; then
     export KBUILD_COMPILER_STRING="$(${CLANG_DIR}/bin/clang --version | head -n 1)"
   else
