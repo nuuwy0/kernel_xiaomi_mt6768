@@ -71,7 +71,7 @@ if [ ! -f '${CLANG_DIR}/bin/clang' ]; then
 git clone --depth 1 --no-single-branch https://github.com/nuuwy0/Anykernel3.git -b merlin AnyKernel3
 }
 
-if [ ! -d "Telegram" ]; then
+if [ ! -f "${pwd}/Telegram/telegram" ]; then
   git clone --depth=1 https://github.com/fabianonline/telegram.sh Telegram
 fi
 
