@@ -38,7 +38,7 @@ GCC32_DIR=$KERNEL_DIR/gcc32
 KERNEL_NAME="Atomic-Osuya!"
 VERSION="v1"
 export KERVER=$(make kernelversion)
-LINKER=ld.lld
+LINKER=ld
 MODEL="Redmi Note 9"
 DEVICE="merlin"
 CONFIG="merlin_defconfig"
@@ -52,7 +52,6 @@ export TZ="Asia/Jakarta"
 export ARCH="arm64"
 export KBUILD_BUILD_USER="nuuwy0"
 export KBUILD_BUILD_HOST="0ywuun"
-
 
 CLEAN="1"
 
@@ -148,19 +147,21 @@ tgm "
 "
 
 make O=out ARCH=$ARCH $CONFIG
-make -j"$CORES" ARCH=$ARCH O=out \
-    REAL_CC="ccache clang" \
-    LD="$LINKER" \
-    LLVM=1 \
-    LLVM_IAS=1 \
-    AR=llvm-ar \
-    NM=llvm-nm \
-    OBJCOPY=llvm-objcopy \
-    OBJDUMP=llvm-objdump \
-    STRIP=llvm-strip \
-    CLANG_TRIPLE=aarch64-linux-gnu- \
-    CROSS_COMPILE=aarch64-linux-gnu-\
-    CROSS_COMPILE_ARM32=arm-linux-gnueabi- 2>&1 | tee error.log
+MAKE+=(
+			CROSS_COMPILE=aarch64-linux-gnu-
+			CROSS_COMPILE_COMPAT=arm-linux-gnueabi-
+			LLVM=1
+			CC=clang
+			AR=llvm-ar
+			OBJDUMP=llvm-objdump
+			STRIP=llvm-strip
+			NM=llvm-nm
+			OBJCOPY=llvm-objcopy
+			LD="$LINKER"
+		)
+make -kj"$PROCS" O=out \
+		V=$VERBOSE \
+		"${MAKE[@]}" 2>&1 | tee error.log
 
    if [[ -f "$IMAGE" ]]; then
       echo -e "\n\e[1;32m[✓] Kernel successfully compiled! \e[0m"
