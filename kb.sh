@@ -14,74 +14,72 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Personal script for kranul compilation !!
 
-# Load variables from config.env
 export $(grep -v '^#' config.env | xargs)
-sudo apt install bc
-# Telegram Bot Token checking
+
 if [ "$TELEGRAM_TOKEN" = "" ];then
   echo "You have forgot to put the Telegram Bot Token! Aborting..."
   sleep 0.5
   exit 1
 fi
 
-# Telegram Chat checking
 if [ "$TELEGRAM_CHAT" = "" ];then
   echo "You have forgot to put the Telegram Chat ID! Aborting..."
   sleep 0.5
   exit 1
 fi
 
-# Path
-MainPath="$(readlink -f -- $(pwd))"
-MainClangPath="${MainPath}/clang"
-MainGccPath="${MainPath}/los"
-AnyKernelPath="${MainPath}/anykernel"
-CrossCompileFlagTriple="aarch64-linux-gnu-"
-CrossCompileFlag64="aarch64-linux-gnu-"
-CrossCompileFlag32="arm-linux-gnueabi-"
 
-# Clone toolchain
-[[ "$(pwd)" != "${MainPath}" ]] && cd "${MainPath}"
-function toolchain() {
-git clone https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9 --depth 1 los
-git clone https://github.com/NusantaraDevs/DragonTC/ --branch 10.0 --depth=1 clang
-export PATH="${MainClangPath}/bin:${MainGccPath}/bin:${${PATH}"
+KERNEL_DIR="$(readlink -f -- $(pwd))"
+CLANG_DIR=$KERNEL_DIR/clang
+GCC64_DIR=$KERNEL_DIR/gcc64
+GCC32_DIR=$KERNEL_DIR/gcc32
 
-  if [ ! -f '${MainClangPath}-${ClangName}/bin/clang' ]; then
-    export KBUILD_COMPILER_STRING="$(${MainClangPath}-${ClangName}/bin/clang --version | head -n 1)"
-  else
-    export KBUILD_COMPILER_STRING="Unknown"
-  fi
-}
-# Enviromental variable
-STARTTIME="$(TZ='Asia/Jakarta' date +%H%M)"
-export TZ="Asia/Jakarta"
+KERNEL_NAME="Atomic-Osuya!"
+VERSION="v1"
+export KERVER=$(make kernelversion)
+LINKER=ld.lld
 MODEL="Redmi Note 9"
 DEVICE="merlin"
-export DEFCONFIG="merlin_defconfig"
-export ARCH="arm64"
-export KBUILD_BUILD_USER="nuuwy0"
-export KBUILD_BUILD_HOST="0ywuun"
-#export KERNEL_NAME="$(cat "arch/arm64/configs/$DEVICE_DEFCONFIG" | grep "CONFIG_LOCALVERSION=" | sed 's/CONFIG_LOCALVERSION="-*//g' | sed 's/"*//g' )"
-export KERNEL_NAME="Atomic!"
-export VERSION="v1"
-export KERVER=$(make kernelversion)
-#export SUBLEVEL="v4.14.$(cat "${MainPath}/Makefile" | grep "SUBLEVEL =" | sed 's/SUBLEVEL = *//g')"
-IMAGE="${MainPath}/out/arch/arm64/boot/Image.gz-dtb"
-CORES="$(nproc --all)"
-BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+CONFIG="merlin_defconfig"
+IMAGE="${KERNEL_DIR}/out/arch/arm64/boot/Image.gz-dtb"
+PROCS="$(nproc --all)"
 DATE=$(date +"%d-%m-%Y")
 ZDATE="$(date "+%d%m%Y")"
 
-# Function of telegram
-if [ ! -f "${MainPath}/Telegram/telegram" ]; then
+
+export TZ="Asia/Jakarta"
+export ARCH="arm64"
+export SUBARCH=$ARCH
+export KBUILD_BUILD_USER="nuuwy0"
+export KBUILD_BUILD_HOST="0ywuun"
+
+CLEAN="1"
+
+
+function clone() {
+git clone https://github.com/mvaisakh/gcc-arm64 --depth 1 gcc64
+git clone https://github.com/mvaisakh/gcc-arm --depth 1 gcc32
+git clone https://gitlab.com/Panchajanya1999/azure-clang clang --depth=1
+export PATH="$CLANG_DIR/bin/:$GCC64_DIR/bin/:$GCC32_DIR/bin/:/usr/bin:$PATH"
+cd ${CLANG_DIR}
+wget "https://gist.github.com/dakkshesh07/240736992abf0ea6f0ee1d8acb57a400/raw/a835c3cf8d99925ca33cec3b210ee962904c9478/patch-for-old-glibc.sh" -O patch.sh && chmod +x patch.sh && ./patch.sh
+cd ..
+
+if [ ! -f '${CLANG_DIR}/bin/clang' ]; then
+    export KBUILD_COMPILER_STRING="$(${CLANG_DIR}/bin/clang --version | head -n 1)"
+  else
+    export KBUILD_COMPILER_STRING="Unknown"
+  fi
+
+git clone --depth 1 --no-single-branch https://github.com/nuuwy0/Anykernel3.git -b merlin AnyKernel3
+}
+
+if [ ! -f "${pwd}/Telegram/telegram" ]; then
   git clone --depth=1 https://github.com/fabianonline/telegram.sh Telegram
 fi
-TELEGRAM="${MainPath}/Telegram/telegram"
 
-# Telegram message sending function
+TELEGRAM="$(pwd)/Telegram/telegram"
 tgm() {
   "${TELEGRAM}" -H -D \
       "$(
@@ -91,23 +89,22 @@ tgm() {
       )"
 }
 
-# Telegram file sending function
 tgf() {
   "${TELEGRAM}" -H \
   -f "$1" \
   "$2"
 }
 
-tgannounce() {
-  "${TELEGRAM}" -c ${TELEGRAM_CHANNEL} -H \
-  -f "$1" \
-  "$2"
+function gen_zip() {
+    cd AnyKernel3
+    zip -r9 $KERNEL_NAME-$VERSION-$DEVICE-$ZDATE.zip * -x .git README.md *placeholder
+    ZIP_FINAL="$KERNEL_NAME-$VERSION-$DEVICE-$ZDATE"
+   cd ..
 }
 
-# Function for uploaded kernel file
 function push() {
 
-  cfile="kernel-info-$VERSION-$ZDATE.md"
+        cfile="kernel-info-$VERSION-$ZDATE.md"
 	log="$(git log --oneline -n 40)"
 	flog="$(echo "$log" | sed -E 's/^([a-zA-Z0-9]+) (.*)/* \2/')"
 
@@ -123,25 +120,26 @@ function push() {
 		echo -e "## Changelogs build $ZDATE"
 		echo -e "$flog"
 	} >>"$cfile"
-
-  ZIP=$(echo $AnyKernelPath/*.zip)
+  cd AnyKernel3
+  cp ../$cfile .
   tgm "
 <b>✅ ${KERNEL_NAME} Kernel</b>
 <b>[*] Build Date </b> => <code>$DATE</code>
   "
-  tgf "$ZIP" "<b>[*] Compiler</b> => <code>${KBUILD_COMPILER_STRING}</code>"
-  tgf "$cfile" "<b>[*] Kernel Changelog</b>"
 
-  sleep 3
-    if [ "$CLEANUP" = "yes" ];then
-       cleanup
-    fi
+  tgf "$ZIP_FINAL" "<b>[*] Compiler</b> => <code>${KBUILD_COMPILER_STRING}</code>"
+  tgf "$cfile" "<b>[*] Kernel Changelog</b>"
 }
 
 
 
-function sendinfo(){
-  tgm "
+build_kernel(){
+if [[ $CLEAN  == "1" ]]; then
+                echo -e "\n\e[1;93m[*] Cleaning source and out/ directory! \e[0m"
+		make clean && make mrproper && rm -rf out
+fi
+
+tgm "
 <b> ${KERNEL_NAME} Kernel Build Triggered</b>
 <b>-----------------------------------------</b>
 <b> Architecture</b>   : <code>$ARCH</code>
@@ -151,71 +149,34 @@ function sendinfo(){
 <b> Linux Version</b>  : <code>$KERVER</code>
 <b> Compiler Name</b>  : <code>${KBUILD_COMPILER_STRING}</code>
 <b>------------------------------------------</b>
-" 
-}
+"
 
-# Start Compile
-START=$(date +"%s")
+make O=out $CONFIG
+MAKE+=(
+			CROSS_COMPILE=aarch64-linux-gnu-
+			CROSS_COMPILE_COMPAT=arm-linux-gnueabi-
+			LLVM=1
+			CC=clang
+			AR=llvm-ar
+			OBJDUMP=llvm-objdump
+			STRIP=llvm-strip
+			NM=llvm-nm
+			OBJCOPY=llvm-objcopy
+			LD="$LINKER"
+		)
+make -kj"$PROCS" O=out \
+		V=$VERBOSE \
+		"${MAKE[@]}" 2>&1 | tee error.log
 
-compile(){
-if [ "$ClangName" = "proton" ]; then
-  sed -i 's/CONFIG_LLVM_POLLY=y/# CONFIG_LLVM_POLLY is not set/g' ${MainPath}/arch/$ARCH/configs/xiaomi_defconfig || echo ""
-else
-  sed -i 's/# CONFIG_LLVM_POLLY is not set/CONFIG_LLVM_POLLY=y/g' ${MainPath}/arch/$ARCH/configs/xiaomi_defconfig || echo ""
-fi
-
-make O=out ARCH=$ARCH $DEFCONFIG
-make -j"$CORES" ARCH=$ARCH O=out \
-    REAL_CC="ccache clang" \
-    LD=ld.lld \
-    LLVM=1 \
-    LLVM_IAS=1 \
-    AR=llvm-ar \
-    NM=llvm-nm \
-    OBJCOPY=llvm-objcopy \
-    OBJDUMP=llvm-objdump \
-    STRIP=llvm-strip \
-    CLANG_TRIPLE=${CrossCompileFlagTriple} \
-    CROSS_COMPILE=${CrossCompileFlag64} \
-    CROSS_COMPILE_ARM32=${CrossCompileFlag32} 2>&1 | tee error.log
-    
    if [[ -f "$IMAGE" ]]; then
-      cd ${MainPath}
-      #cp out/.config arch/${ARCH}/configs/${DEVICE_DEFCONFIG} && git add arch/${ARCH}/configs/${DEVICE_DEFCONFIG} && git commit -m "defconfig: Regenerate"
-      git clone --depth 1 --no-single-branch https://github.com/HeyYoWhatBro/AnyKernel3 -b merlin ${AnyKernelPath}
-      cp $IMAGE ${AnyKernelPath}
+      echo -e "\n\e[1;32m[✓] Kernel successfully compiled! \e[0m"
+      gen_zip
+      push
    else
-      tgf "${MainPath}/error.log" "<i> ❌ Compile Kernel for $DEVICE_CODENAME failed, Check console log to fix it!</i>"
-      if [ "$CLEANUP" = "yes" ];then
-        cleanup
-      fi
+      tgf "error.log" "<i> ❌ Compile Kernel for $DEVICE_CODENAME failed, Check console log to fix it!</i>"
       exit 1
    fi
 }
 
-# Zipping function
-function zipping() {
-    cd ${AnyKernelPath} || exit 1
-    sed -i "s/kernel.string=.*/kernel.string=$KERNEL_NAME-$VERSION-$DEVICE_CODENAME-$ZDATE by ${KBUILD_BUILD_USER} for ${DEVICE_MODEL} (${DEVICE_CODENAME})/g" anykernel.sh
-    zip -r9 $KERNEL_NAME-$VERSION-$DEVICE-$ZDATE.zip * -x .git README.md *placeholder
-    cd ..
-    mkdir -p builds
-    zipname="$(basename $(echo ${AnyKernelPath}/*.zip | sed "s/.zip//g"))"
-    cp ${AnyKernelPath}/*.zip ./builds/
-}
-
-# Cleanup function
-function cleanup() {
-    cd ${MainPath}
-    sudo rm -rf ${AnyKernelPath}
-    sudo rm -rf out/
-    sudo rm -rf error.log
-}
-
-toolchain
-sendinfo
-compile
-zipping
-END=$(date +"%s")
-DIFF=$(($END - $START))
-push
+clone
+build_kernel
