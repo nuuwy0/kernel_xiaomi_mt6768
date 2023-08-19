@@ -98,7 +98,6 @@ tgf() {
 function gen_zip() {
     cd AnyKernel3
     zip -r9 $KERNEL_NAME-$VERSION-$DEVICE-$ZDATE.zip * -x .git README.md *placeholder
-    ZIP_FINAL="$KERNEL_NAME-$VERSION-$DEVICE-$ZDATE"
    cd ..
 }
 
@@ -126,7 +125,7 @@ function push() {
 <b>✅ ${KERNEL_NAME} Kernel</b>
 <b>[*] Build Date </b> => <code>$DATE</code>
   "
-
+ZIP_FINAL="$KERNEL_NAME-$VERSION-$DEVICE-$ZDATE"
   tgf "$ZIP_FINAL" "<b>[*] Compiler</b> => <code>${KBUILD_COMPILER_STRING}</code>"
   tgf "$cfile" "<b>[*] Kernel Changelog</b>"
 }
