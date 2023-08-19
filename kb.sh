@@ -60,11 +60,9 @@ CLEAN="1"
 function clone() {
 git clone https://github.com/mvaisakh/gcc-arm64 --depth 1 gcc64
 git clone https://github.com/mvaisakh/gcc-arm --depth 1 gcc32
-git clone https://gitlab.com/Panchajanya1999/azure-clang clang --depth=1
+git clone https://github.com/NusantaraDevs/DragonTC clang --depth=1
 export PATH="$CLANG_DIR/bin/:$GCC64_DIR/bin/:$GCC32_DIR/bin/:/usr/bin:$PATH"
-cd ${CLANG_DIR}
-wget "https://gist.github.com/dakkshesh07/240736992abf0ea6f0ee1d8acb57a400/raw/a835c3cf8d99925ca33cec3b210ee962904c9478/patch-for-old-glibc.sh" -O patch.sh && chmod +x patch.sh && ./patch.sh
-cd ..
+
 
 if [ ! -f '${CLANG_DIR}/bin/clang' ]; then
     export KBUILD_COMPILER_STRING="$(${CLANG_DIR}/bin/clang --version | head -n 1)"
