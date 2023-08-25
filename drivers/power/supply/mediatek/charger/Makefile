@@ -12,6 +12,9 @@
 #
 
 MTK_PLATFORM := $(subst ",,$(CONFIG_MTK_PLATFORM))
+$(info MTK_PLATFORM_ID is [${MTK_PLATFORM}])
+$(info MTK_CHARGER : TARGET PRODUCT is MERLIN )
+export TARGET_PRODUCT_MERLIN=y
 subdir-ccflags-y += -Werror
 subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/include
 subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat/$(MTK_PLATFORM)/include
